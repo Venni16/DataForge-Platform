@@ -91,4 +91,44 @@ export async function getOperations(datasetId) {
   return []; // delegated to data-engine in local mode
 }
 
+export async function getAllDatasets() {
+  if (USE_SUPABASE) {
+    const { data, error } = await supabase
+      .from('datasets')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (error) throw new Error(error.message);
+    return data || [];
+  } else {
+    const datasets = readLocal('datasets.json');
+    return [...datasets].sort(
+      (a, b) => new Date(b.created_at) - new Date(a.created_at)
+    );
+  }
+}
+
+export async function deleteDataset(id) {
+  if (USE_SUPABASE) {
+    const { error } = await supabase.from('datasets').delete().eq('id', id);
+    if (error) throw new Error(error.message);
+  } else {
+    const datasets = readLocal('datasets.json');
+    writeLocal('datasets.json', datasets.filter(d => d.id !== id));
+  }
+}
+
+export async function updateDataset(id, updates) {
+  if (USE_SUPABASE) {
+    const { error } = await supabase.from('datasets').update(updates).eq('id', id);
+    if (error) throw new Error(error.message);
+  } else {
+    const datasets = readLocal('datasets.json');
+    const index = datasets.findIndex(d => d.id === id);
+    if (index !== -1) {
+      datasets[index] = { ...datasets[index], ...updates };
+      writeLocal('datasets.json', datasets);
+    }
+  }
+}
+
 export const storageMode = USE_SUPABASE ? 'supabase' : 'local';

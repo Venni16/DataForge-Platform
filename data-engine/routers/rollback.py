@@ -3,11 +3,13 @@ Rollback and history router — allows reverting to any prior version
 and querying the full operation log.
 """
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 
 from core.history import get_history, log_operation
 from core.versioning import (
     get_latest_version,
+    get_version_path,
     list_versions,
     load_version,
     save_version,
@@ -81,3 +83,37 @@ def get_version_preview(dataset_id: str, version: int):
         raise HTTPException(status_code=404, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/version/{dataset_id}/{version}/download")
+def download_version(dataset_id: str, version: int):
+    """Return the complete CSV file for a specific dataset version."""
+    import os
+    path = get_version_path(dataset_id, version)
+    if not path.exists():
+        raise HTTPException(status_code=404, detail=f"File not found: {path}")
+    
+    return FileResponse(
+        path=path,
+        media_type="text/csv",
+        filename=f"dataset_{dataset_id}_v{version}.csv"
+    )
+
+
+@router.delete("/{dataset_id}/wipe")
+async def wipe_dataset(dataset_id: str):
+    """Physically deletes all physical snapshots and history for a dataset."""
+    import shutil
+    import os
+
+    # 1. Delete history log (relative to project root)
+    log_path = f"data/history/{dataset_id}.json"
+    if os.path.exists(log_path):
+        os.remove(log_path)
+
+    # 2. Delete all versioned CSVs
+    version_dir = f"data/versions/{dataset_id}"
+    if os.path.exists(version_dir):
+        shutil.rmtree(version_dir)
+
+    return {"success": True, "dataset_id": dataset_id, "message": "Physical files wiped."}

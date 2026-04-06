@@ -7,6 +7,7 @@ import processRouter from './routes/process.js';
 import historyRouter from './routes/history.js';
 import exportRouter from './routes/export.js';
 import visualizeRouter from './routes/visualize.js';
+import datasetsRouter from './routes/datasets.js';
 import { errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
@@ -23,6 +24,7 @@ app.use('/api/process',    processRouter);
 app.use('/api/history',    historyRouter);
 app.use('/api/export',     exportRouter);
 app.use('/api/visualize',  visualizeRouter);
+app.use('/api/datasets',   datasetsRouter);
 
 // ── Health ─────────────────────────────────────────────────────────────────────
 app.get('/api/health', (_req, res) => {
