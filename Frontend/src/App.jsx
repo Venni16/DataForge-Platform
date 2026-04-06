@@ -11,6 +11,7 @@ import VisualizationTab from './pages/VisualizationTab.jsx';
 import HistoryTab from './pages/HistoryTab.jsx';
 import ExportTab from './pages/ExportTab.jsx';
 import DatasetsTab from './pages/DatasetsTab.jsx';
+import ModelTab from './pages/ModelTab.jsx';
 
 const TAB_META = {
   datasets:  { title: 'My Datasets',          subtitle: 'Browse and switch between all datasets' },
@@ -20,6 +21,7 @@ const TAB_META = {
   cleaning:  { title: 'Data Cleaning',         subtitle: 'Remove duplicates and outliers' },
   features:  { title: 'Feature Engineering',   subtitle: 'Encoding and scaling' },
   visualize: { title: 'Visualization',         subtitle: 'Charts and correlation analysis' },
+  models:    { title: 'Machine Learning',      subtitle: 'Train, Evaluate, and Predict' },
   history:   { title: 'Version History',       subtitle: 'Browse operations and rollback' },
   export:    { title: 'Export',                subtitle: 'Download dataset and pipeline script' },
 };
@@ -44,6 +46,7 @@ function AppContent() {
       case 'cleaning':  return <CleaningTab />;
       case 'features':  return <FeatureEngineeringTab />;
       case 'visualize': return <VisualizationTab />;
+      case 'models':    return <ModelTab />;
       case 'history':   return <HistoryTab />;
       case 'export':    return <ExportTab />;
       default:          return <UploadTab />;

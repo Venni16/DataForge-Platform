@@ -45,6 +45,15 @@ router.post('/duplicates', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// ── Drop Column ────────────────────────────────────────────────────────────────
+router.post('/drop_column', async (req, res, next) => {
+  try {
+    const result = await forwardToEngine('/process/drop_column', req.body);
+    await updateVersion(req.body.dataset_id, result.version);
+    res.json(result);
+  } catch (err) { next(err); }
+});
+
 // ── Outliers ───────────────────────────────────────────────────────────────────
 router.post('/outliers', async (req, res, next) => {
   try {

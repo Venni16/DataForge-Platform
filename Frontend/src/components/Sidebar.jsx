@@ -7,12 +7,13 @@ const NAV = [
   { id: 'missing',   icon: '⬚', label: 'Missing Values',      section: 'CLEAN'   },
   { id: 'cleaning',  icon: '✦', label: 'Cleaning',            section: null      },
   { id: 'features',  icon: '⬡', label: 'Feature Engineering', section: null      },
-  { id: 'visualize', icon: '▣', label: 'Visualization',       section: 'EXPLORE' },
+  { id: 'visualize', icon: '▣', label: 'Visualization',       section: null },
+  { id: 'models',    icon: '🧠', label: 'Machine Learning',    section: 'EXPLORE' },
   { id: 'history',   icon: '⌀', label: 'History',             section: null      },
   { id: 'export',    icon: '⬇', label: 'Export',              section: 'OUTPUT'  },
 ];
 
-const REQUIRES_DATASET = ['overview','missing','cleaning','features','visualize','history','export'];
+const REQUIRES_DATASET = ['overview','missing','cleaning','features','visualize','models','history','export'];
 
 export default function Sidebar({ engineOnline }) {
   const { activeTab, setTab, datasetId, datasetName, shape, currentVersion } = useDataset();

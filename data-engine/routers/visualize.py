@@ -130,16 +130,26 @@ def visualize(req: VisualizeRequest):
                 ax.set_title(f"Box Plot — {col}", fontsize=14, pad=12)
 
             elif chart_type == "heatmap":
-                if len(numeric_cols) < 2:
+                # Cap heatmap columns to 25 for static view to prevent server timeouts
+                display_cols = numeric_cols[:25]
+                if len(display_cols) < 2:
                     raise HTTPException(status_code=400, detail="Need at least 2 numeric columns for heatmap.")
-                fig, ax = plt.subplots(figsize=(max(8, len(numeric_cols)), max(6, len(numeric_cols) - 1)))
-                corr = df[numeric_cols].corr()
+                
+                # Limit figure size and adjust font
+                fig_w = min(15, max(8, len(display_cols)))
+                fig_h = min(12, max(6, len(display_cols) - 2))
+                fig, ax = plt.subplots(figsize=(fig_w, fig_h))
+                
+                corr = df[display_cols].corr()
                 sns.heatmap(
-                    corr, annot=True, fmt=".2f", ax=ax,
+                    corr, annot=len(display_cols) <= 15, fmt=".2f", ax=ax,
                     cmap="RdYlBu_r", center=0,
-                    annot_kws={"size": 9}, linewidths=0.5,
+                    annot_kws={"size": 8}, linewidths=0.5,
                 )
-                ax.set_title("Correlation Heatmap", fontsize=14, pad=12)
+                title = "Correlation Heatmap"
+                if len(numeric_cols) > 25:
+                    title += " (First 25 Features)"
+                ax.set_title(title, fontsize=14, pad=12)
 
             elif chart_type == "pairplot":
                 cols = req.columns or numeric_cols[:5]

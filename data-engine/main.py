@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import upload, missing, outliers, encoding, scaling, visualize, rollback
+from routers import upload, missing, outliers, encoding, scaling, visualize, rollback, cleaning
 
 app = FastAPI(
     title="DataPrep Pro — Data Engine",
@@ -21,6 +21,7 @@ app.add_middleware(
 app.include_router(upload.router, tags=["Upload"])
 app.include_router(missing.router, prefix="/process", tags=["Processing"])
 app.include_router(outliers.router, prefix="/process", tags=["Processing"])
+app.include_router(cleaning.router, prefix="/process", tags=["Processing"])
 app.include_router(encoding.router, prefix="/process", tags=["Processing"])
 app.include_router(scaling.router, prefix="/process", tags=["Processing"])
 app.include_router(visualize.router, tags=["Visualization"])

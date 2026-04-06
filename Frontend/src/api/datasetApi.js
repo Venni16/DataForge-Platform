@@ -13,6 +13,7 @@ export async function uploadDataset(file) {
 export const processMissing      = (body) => client.post('/process/missing',       body);
 export const processMissingBatch = (body) => client.post('/process/missing/batch', body);
 export const processDuplicates   = (body) => client.post('/process/duplicates',    body);
+export const processDropColumn   = (body) => client.post('/process/drop_column',   body);
 export const processOutliers  = (body) => client.post('/process/outliers',   body);
 export const processEncoding  = (body) => client.post('/process/encoding',   body);
 export const processScaling   = (body) => client.post('/process/scaling',    body);
