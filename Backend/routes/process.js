@@ -28,6 +28,14 @@ router.post('/missing', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+router.post('/missing/batch', async (req, res, next) => {
+  try {
+    const result = await forwardToEngine('/process/missing/batch', req.body);
+    await updateVersion(req.body.dataset_id, result.version);
+    res.json(result);
+  } catch (err) { next(err); }
+});
+
 // ── Duplicate Removal ──────────────────────────────────────────────────────────
 router.post('/duplicates', async (req, res, next) => {
   try {

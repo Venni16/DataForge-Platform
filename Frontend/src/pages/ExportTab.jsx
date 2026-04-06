@@ -12,11 +12,29 @@ function generatePipelineScript(historyItems) {
     '',
     'import pandas as pd',
     'import numpy as np',
-    'from sklearn.preprocessing import MinMaxScaler, StandardScaler, LabelEncoder',
+    'from sklearn.preprocessing import MinMaxScaler, StandardScaler, RobustScaler, LabelEncoder',
+    'from sklearn.impute import KNNImputer',
+    '# To use IterativeImputer you might need to enable experimental features in older sklearn',
+    'try:',
+    '    from sklearn.experimental import enable_iterative_imputer',
+    'except ImportError: pass',
+    'from sklearn.impute import IterativeImputer',
     '',
     'df = pd.read_csv("your_dataset.csv")',
     '',
   ];
+
+  function getMissingLogic(p) {
+    if (p.method === 'mean')      return `df['${p.column}'] = df['${p.column}'].fillna(df['${p.column}'].mean())`;
+    if (p.method === 'median')    return `df['${p.column}'] = df['${p.column}'].fillna(df['${p.column}'].median())`;
+    if (p.method === 'mode')      return `df['${p.column}'] = df['${p.column}'].fillna(df['${p.column}'].mode()[0])`;
+    if (p.method === 'knn')       return `df[['${p.column}']] = KNNImputer(n_neighbors=5).fit_transform(df[['${p.column}']])`;
+    if (p.method === 'iterative') return `df[['${p.column}']] = IterativeImputer(max_iter=10).fit_transform(df[['${p.column}']])`;
+    if (p.method === 'drop_rows') return `df = df.dropna(subset=['${p.column}']).reset_index(drop=True)`;
+    if (p.method === 'drop_column') return `df = df.drop(columns=['${p.column}'])`;
+    if (p.method === 'custom')     return `df['${p.column}'] = df['${p.column}'].fillna(${JSON.stringify(p.value)})`;
+    return `# Unsupported method: ${p.method}`;
+  }
 
   for (const step of historyItems) {
     const p = step.parameters || {};
@@ -24,12 +42,11 @@ function generatePipelineScript(historyItems) {
     lines.push(`# v${step.version}: ${op}`);
 
     if (op === 'handle_missing') {
-      if (p.method === 'mean')      lines.push(`df['${p.column}'] = df['${p.column}'].fillna(df['${p.column}'].mean())`);
-      else if (p.method === 'median') lines.push(`df['${p.column}'] = df['${p.column}'].fillna(df['${p.column}'].median())`);
-      else if (p.method === 'mode')  lines.push(`df['${p.column}'] = df['${p.column}'].fillna(df['${p.column}'].mode()[0])`);
-      else if (p.method === 'drop_rows') lines.push(`df = df.dropna(subset=['${p.column}']).reset_index(drop=True)`);
-      else if (p.method === 'drop_column') lines.push(`df = df.drop(columns=['${p.column}'])`);
-      else if (p.method === 'custom') lines.push(`df['${p.column}'] = df['${p.column}'].fillna(${JSON.stringify(p.value)})`);
+      lines.push(getMissingLogic(p));
+    } else if (op === 'handle_missing_batch') {
+      (p.operations || []).forEach(subOp => {
+        lines.push(getMissingLogic(subOp));
+      });
     } else if (op === 'remove_duplicates') {
       lines.push('df = df.drop_duplicates().reset_index(drop=True)');
     } else if (op.includes('outliers_iqr')) {
@@ -46,6 +63,8 @@ function generatePipelineScript(historyItems) {
       lines.push(`df[${JSON.stringify(p.columns)}] = MinMaxScaler().fit_transform(df[${JSON.stringify(p.columns)}])`);
     } else if (op.includes('scaling_standard')) {
       lines.push(`df[${JSON.stringify(p.columns)}] = StandardScaler().fit_transform(df[${JSON.stringify(p.columns)}])`);
+    } else if (op.includes('scaling_robust')) {
+      lines.push(`df[${JSON.stringify(p.columns)}] = RobustScaler().fit_transform(df[${JSON.stringify(p.columns)}])`);
     }
     lines.push('');
   }

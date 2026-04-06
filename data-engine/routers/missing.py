@@ -16,8 +16,19 @@ router = APIRouter()
 class MissingRequest(BaseModel):
     dataset_id: str
     column: str
-    method: str  # mean | median | mode | custom | drop_rows | drop_column
+    method: str  # mean | median | mode | knn | iterative | custom | drop_rows | drop_column
     value: Optional[str] = None
+
+
+class BatchItem(BaseModel):
+    column: str
+    method: str
+    value: Optional[str] = None
+
+
+class BatchMissingRequest(BaseModel):
+    dataset_id: str
+    operations: list[BatchItem]
 
 
 class DuplicateRequest(BaseModel):
@@ -40,6 +51,39 @@ def process_missing(req: MissingRequest):
             req.dataset_id,
             new_ver,
             "handle_missing",
+            req.model_dump(),
+            {"rows": meta["rows"], "columns": meta["columns"]},
+        )
+        info = get_dataframe_info(df)
+        return {"success": True, "version": new_ver, **info}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/missing/batch")
+def process_missing_batch(req: BatchMissingRequest):
+    """Apply multiple missing-value strategies in one operation."""
+    try:
+        version = get_latest_version(req.dataset_id)
+        if version == 0:
+            raise HTTPException(status_code=404, detail="Dataset not found.")
+
+        df = load_version(req.dataset_id, version)
+        # Convert Pydantic list of objects to list of dicts for the service
+        ops = [item.model_dump() for item in req.operations]
+        
+        from services.data_ops import handle_missing_batch
+        df = handle_missing_batch(df, ops)
+        
+        new_ver = version + 1
+        meta = save_version(df, req.dataset_id, new_ver)
+        log_operation(
+            req.dataset_id,
+            new_ver,
+            "handle_missing_batch",
             req.model_dump(),
             {"rows": meta["rows"], "columns": meta["columns"]},
         )

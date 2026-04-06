@@ -118,6 +118,7 @@ export default function FeatureEngineeringTab() {
               <select className="form-select" value={scaleMethod} onChange={e => setScaleMethod(e.target.value)}>
                 <option value="minmax">Min-Max Scaler (0–1)</option>
                 <option value="standard">Standard Scaler (z-score)</option>
+                <option value="robust">Robust Scaler (IQR-based)</option>
               </select>
             </div>
             <div className="form-group" style={{ justifyContent: 'flex-end' }}>
@@ -126,8 +127,22 @@ export default function FeatureEngineeringTab() {
               </button>
             </div>
           </div>
+          <div className="divider" style={{ margin: '16px 0' }} />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+            {[
+              { name: 'Min-Max', desc: 'Rescales to [0, 1]. Best for features with fixed ranges. Sensitive to outliers.' },
+              { name: 'Standard', desc: 'Removes mean, scales to unit variance. Good for normal dist. Sensitive to outliers.' },
+              { name: 'Robust', desc: 'Uses median and IQR. Ignores outliers. Best for skewed or noisy data.' },
+            ].map(({ name, desc }) => (
+              <div key={name} style={{ padding: '12px', background: 'var(--bg-elevated)', borderRadius: '6px', border: '1px solid var(--border-default)' }}>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.72rem', color: 'var(--blue)', fontWeight: 600, marginBottom: '6px' }}>{name}</div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.65rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>{desc}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>
   );
 }
+
