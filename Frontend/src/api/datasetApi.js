@@ -18,7 +18,7 @@ export const processEncoding  = (body) => client.post('/process/encoding',   bod
 export const processScaling   = (body) => client.post('/process/scaling',    body);
 
 // ── Visualization ──────────────────────────────────────────────────────────────
-export const visualize = (body) => client.post('/visualize', body);
+export const visualize = (params) => client.post('/visualize', params);
 
 // ── History ────────────────────────────────────────────────────────────────────
 export const getHistory       = (id)       => client.get(`/history/${id}`);

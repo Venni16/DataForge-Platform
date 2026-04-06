@@ -10,6 +10,8 @@ import matplotlib
 matplotlib.use("Agg")  # Non-interactive backend — must be set before pyplot import
 import matplotlib.pyplot as plt
 import seaborn as sns
+import plotly.express as px
+import json
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
@@ -38,6 +40,7 @@ class VisualizeRequest(BaseModel):
     x_column: Optional[str] = None
     y_column: Optional[str] = None
     columns: Optional[List[str]] = None
+    interactive: bool = False
 
 
 def _fig_to_base64(fig) -> str:
@@ -51,7 +54,7 @@ def _fig_to_base64(fig) -> str:
 
 @router.post("/visualize")
 def visualize(req: VisualizeRequest):
-    """Generate a chart for the current dataset version and return as base64 PNG."""
+    """Generate a chart for the current dataset version."""
     try:
         version = get_latest_version(req.dataset_id)
         if version == 0:
@@ -59,10 +62,45 @@ def visualize(req: VisualizeRequest):
 
         df = load_version(req.dataset_id, version)
         numeric_cols = df.select_dtypes(include="number").columns.tolist()
+        chart_type = req.chart_type.lower()
 
+        # Handle Interactive (Plotly)
+        if req.interactive and chart_type != "pairplot":
+            # DataForge Dark Theme Template
+            dark_template = "plotly_dark"
+            
+            if chart_type == "histogram":
+                col = req.column or (numeric_cols[0] if numeric_cols else None)
+                if col is None: raise HTTPException(status_code=400, detail="No numeric columns.")
+                fig = px.histogram(df, x=col, template=dark_template, color_discrete_sequence=["#f59e0b"], marginal="box")
+                fig.update_layout(title=f"Interactive Histogram — {col}")
+            
+            elif chart_type == "scatter":
+                x_col = req.x_column or (numeric_cols[0] if len(numeric_cols) > 0 else None)
+                y_col = req.y_column or (numeric_cols[1] if len(numeric_cols) > 1 else None)
+                if not x_col or not y_col: raise HTTPException(status_code=400, detail="Need 2 numeric columns.")
+                fig = px.scatter(df, x=x_col, y=y_col, template=dark_template, color_discrete_sequence=["#3b82f6"], opacity=0.6)
+                fig.update_layout(title=f"Interactive Scatter — {x_col} vs {y_col}")
+
+            elif chart_type == "box":
+                col = req.column or (numeric_cols[0] if numeric_cols else None)
+                if col is None: raise HTTPException(status_code=400, detail="No numeric columns.")
+                fig = px.box(df, y=col, template=dark_template, color_discrete_sequence=["#06b6d4"])
+                fig.update_layout(title=f"Interactive Box Plot — {col}")
+
+            elif chart_type == "heatmap":
+                if len(numeric_cols) < 2: raise HTTPException(status_code=400, detail="Need 2 numeric columns.")
+                corr = df[numeric_cols].corr()
+                fig = px.imshow(corr, text_auto=".2f", template=dark_template, aspect="auto", color_continuous_scale="RdYlBu_r")
+                fig.update_layout(title="Interactive Correlation Heatmap")
+            
+            else:
+                raise HTTPException(status_code=400, detail=f"Interactive mode not supported for {chart_type}")
+
+            return {"chart_type": chart_type, "interactive": True, "plot_data": json.loads(fig.to_json())}
+
+        # Handle Static (Matplotlib/Seaborn)
         with plt.rc_context(CHART_STYLE):
-            chart_type = req.chart_type.lower()
-
             if chart_type == "histogram":
                 col = req.column or (numeric_cols[0] if numeric_cols else None)
                 if col is None:
@@ -113,13 +151,13 @@ def visualize(req: VisualizeRequest):
                     diag_kws={"color": "#3b82f6"},
                 )
                 pair_grid.figure.patch.set_facecolor("#0d0e11")
-                return {"chart_type": chart_type, "image": _fig_to_base64(pair_grid.figure)}
+                return {"chart_type": chart_type, "interactive": False, "image": _fig_to_base64(pair_grid.figure)}
 
             else:
                 raise HTTPException(status_code=400, detail=f"Unknown chart type: '{chart_type}'")
 
             fig.tight_layout()
-            return {"chart_type": chart_type, "image": _fig_to_base64(fig)}
+            return {"chart_type": chart_type, "interactive": False, "image": _fig_to_base64(fig)}
 
     except HTTPException:
         raise

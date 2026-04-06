@@ -446,7 +446,60 @@ img { display: block; max-width: 100%; }
   font-family: var(--font-mono);
   font-size: 0.62rem;
   color: var(--text-muted);
-  margin-top: var(--space-1);
+  margin-top: var(--space-1);/* Switch Toggle */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--bg-elevated);
+  transition: .3s;
+  border: 1px solid var(--border-default);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 12px;
+  width: 12px;
+  left: 3px;
+  bottom: 3px;
+  background-color: var(--text-muted);
+  transition: .3s;
+}
+
+input:checked + .slider {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-color: var(--blue);
+}
+
+input:checked + .slider:before {
+  transform: translateX(16px);
+  background-color: var(--blue);
+}
+
+.slider.round {
+  border-radius: 20px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
 }
 
 /* ── Data Table ────────────────────────────────────────── */
