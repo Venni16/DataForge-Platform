@@ -1,7 +1,7 @@
 # DataForge Platform — DataPrep Pro v1.0
 
 <p align="center">
-  <img src="frontend/public/logo.png" width="200" alt="DataForge Logo">
+  <img src="assets/logo.png" width="160" alt="DataForge Logo">
 </p>
 
 [![Aesthetic: Industrial Lab](https://img.shields.io/badge/Aesthetic-Industrial%20Lab-orange?style=for-the-badge)](https://github.com/Venni16/DataForge-Platform)
