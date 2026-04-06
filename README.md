@@ -39,9 +39,9 @@ graph TD
 ```
 
 ### Technical Stack
-- **Frontend**: React 19, Vite, Custom HSL-token Design System.
+- **Frontend**: React 19, Vite, Custom HSL-token Design System, React-Plotly.js.
 - **Backend Gateway**: Node.js, Express, Axios, Supabase Client.
-- **Data Engine**: Python 3.12, FastAPI, Pandas, Scikit-learn, Seaborn/Matplotlib.
+- **Data Engine**: Python 3.12, FastAPI, Pandas, Scikit-learn, Plotly Express (Interactive charts).
 - **Database**: Supabase (PostgreSQL) for metadata, Local Snapshots for CSV storage.
 
 ---
@@ -60,8 +60,8 @@ Every operation (cleaning, scaling, encoding) creates a **new versioned snapshot
 
 ### 3. Advanced Transformation Suite
 - **Cleaning**: Intelligent duplicate removal and outlier detection (IQR & Z-Score).
-- **Missing Values**: Real-time diagnostic heatmaps with Mean/Median/Mode imputation.
-- **Feature Engineering**: Categorical Encoding (One-Hot, Label) and Feature Scaling (MinMax, Standard).
+- **Missing Values**: Real-time diagnostic heatmaps with advanced batch imputation (Mean, Median, KNN, Iterative Models).
+- **Feature Engineering**: Categorical Encoding (One-Hot, Label) and robust Feature Scaling (Standard, MinMax, RobustScaler).
 
 ### 4. Reproducible Pipeline Export
 Convert your entire visual transformation history into a **reproducible Python pipeline script**. This ensures that the exact cleaning steps can be applied in a production ML pipeline.
@@ -108,7 +108,7 @@ npm run dev
 2. **Overview**: Audit column types and descriptive statistics.
 3. **Cleanse**: Detect outliers and fill missing gaps using statistical imputation.
 4. **Engineer**: Prepare features for ML models (Scaling/Encoding).
-5. **Visualize**: Verify distributions with high-contrast charts.
+5. **Visualize**: Verify distributions and correlations using both dynamic **interactive Plotly charts** (with custom dark-UI toolbars) and static Seaborn graphics.
 6. **Export**: Download the processed CSV and the corresponding Python script.
 
 ---
