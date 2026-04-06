@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useDataset } from '../context/DatasetContext.jsx';
 import { useToast } from '../context/ToastContext.jsx';
 import { getAllDatasets, getDatasetById, deleteDataset, renameDataset } from '../api/datasetApi.js';
+import DeleteConfirmModal from '../components/DeleteConfirmModal.jsx';
 
 function timeAgo(dateStr) {
   if (!dateStr) return '—';
@@ -157,6 +158,10 @@ export default function DatasetsTab() {
   const [listLoading, setListLoading] = useState(true);
   const [switchLoading, setSwitchLoading] = useState(null); // ds id being loaded
   const [search, setSearch] = useState('');
+  
+  // Custom Deletion Popup State
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [datasetToDelete, setDatasetToDelete] = useState(null); // { id, name }
 
   const load = useCallback(async () => {
     setListLoading(true);
@@ -189,20 +194,29 @@ export default function DatasetsTab() {
     }
   }
 
-  async function handleDelete(id) {
-    if (!window.confirm('Delete this dataset and all associated versions? This cannot be undone.')) return;
+  function handleDelete(id) {
+    const ds = datasets.find(d => d.id === id);
+    setDatasetToDelete({ id, name: ds?.name || 'Unnamed Dataset' });
+    setIsDeleteModalOpen(true);
+  }
+
+  async function confirmDelete() {
+    if (!datasetToDelete) return;
+    const { id } = datasetToDelete;
     
     try {
       await deleteDataset(id);
       setDatasets(prev => prev.filter(d => d.id !== id));
       addToast({ type: 'success', title: 'Deleted', message: 'Dataset permanently removed.' });
       
-      // If we deleted the active dataset, reset the app state
       if (id === datasetId) {
         reset();
       }
     } catch (err) {
       addToast({ type: 'error', title: 'Delete failed', message: err.message });
+    } finally {
+      setIsDeleteModalOpen(false);
+      setDatasetToDelete(null);
     }
   }
 
@@ -297,6 +311,13 @@ export default function DatasetsTab() {
           ))}
         </div>
       )}
+
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={confirmDelete}
+        datasetName={datasetToDelete?.name}
+      />
     </div>
   );
 }

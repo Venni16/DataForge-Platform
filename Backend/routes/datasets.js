@@ -1,6 +1,6 @@
 import express from 'express';
 import axios from 'axios';
-import { getAllDatasets, getDatasetMeta } from '../db/store.js';
+import { getAllDatasets, getDatasetMeta, deleteDataset, updateDataset } from '../db/store.js';
 
 const router = express.Router();
 const ENGINE = process.env.DATA_ENGINE_URL || 'http://localhost:8000';
